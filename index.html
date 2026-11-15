@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Expediente INSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* Dark-only design. Layout: calm utility page. Copy and calculator side by side on desktop, stacked on phones; one result panel carries the answer; reference sections below. */
+:root {
+  color-scheme: dark;
+  --bg: #0B0E16;
+  --surface: #131825;
+  --field: #0E1220;
+  --ink: #EDEFF6;
+  --muted: #9AA4BB;
+  --line: #252C3E;
+  --accent: #8197FF;
+  --accent-ink: #0B0E16;
+  --ok: #62D6A3;
+  --ok-bg: #11271E;
+  --warn: #F2C45C;
+  --warn-bg: #2A2110;
+  --bad: #FF8F86;
+  --bad-bg: #2D1513;
+  --neutral-bg: #1A2142;
+  --font-display: "Manrope", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 56px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 17px; }
+.mark { width: 28px; height: 28px; flex: none; }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.lang button { appearance: none; border: 0; background: transparent; color: var(--muted); font: 600 13px var(--font-body); letter-spacing: .06em; padding: 8px 14px; cursor: pointer; min-height: 36px; }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 32px; align-items: start; padding-block: 20px 8px; }
+.eyebrow { margin: 0 0 12px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.08; font-weight: 800; }
+.lead { margin: 16px 0 0; color: var(--muted); max-width: 52ch; font-size: 17px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+#calc { display: grid; gap: 8px; }
+#calc label { font-size: 13px; font-weight: 600; margin-top: 6px; }
+select, input[type="date"] {
+  width: 100%; height: 48px; padding: 0 12px; font: 16px var(--font-body); color: var(--ink);
+  background: var(--field); border: 1px solid var(--line); border-radius: 10px; min-width: 0;
+}
+.hint { margin: 0; font-size: 13px; color: var(--muted); }
+.btn {
+  appearance: none; border: 0; border-radius: 10px; height: 48px; padding: 0 20px; margin-top: 10px;
+  background: var(--accent); color: var(--accent-ink); font: 600 16px var(--font-body); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none; text-align: center;
+}
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); margin-top: 0; height: auto; min-height: 44px; padding: 10px 16px; }
+
+.result { margin-top: 24px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.banner { padding: 18px 20px; display: grid; gap: 6px; }
+.banner.ok { background: var(--ok-bg); }
+.banner.neutral { background: var(--neutral-bg); }
+.banner.warn { background: var(--warn-bg); }
+.banner.bad { background: var(--bad-bg); }
+.pill { justify-self: start; font: 700 12px var(--font-body); letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; border: 1px solid currentColor; }
+.ok .pill { color: var(--ok); } .warn .pill { color: var(--warn); } .bad .pill { color: var(--bad); } .neutral .pill { color: var(--accent); }
+.banner h2 { font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; }
+.banner p { margin: 0; max-width: 70ch; }
+.body { padding: 20px; display: grid; gap: 22px; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.facts dd { margin: 4px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.facts dd.big { font: 800 26px var(--font-display); }
+.facts dd small { display: block; font: 400 13px/1.4 var(--font-body); color: var(--muted); margin-top: 2px; }
+
+.track { position: relative; height: 12px; border-radius: 999px; background: var(--field); border: 1px solid var(--line); overflow: hidden; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 999px; }
+.zone { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, var(--warn-bg), var(--warn-bg) 4px, transparent 4px, transparent 8px); }
+.tick { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .55; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) { .fill { transition: width .5s ease; } }
+
+.note { margin: 0; font-size: 13px; color: var(--muted); max-width: 80ch; }
+.steps { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.steps li { padding-left: 4px; max-width: 75ch; }
+.h3 { font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; font-family: var(--font-body); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.empty { color: var(--muted); }
+
+section.block { margin-top: 56px; }
+section.block > h2 { font-size: clamp(22px, 3vw, 28px); font-weight: 800; }
+section.block > .sub { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
+.channels { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.channels .card { padding: 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.channels h3 { font-size: 16px; font-weight: 800; }
+.channels p { margin: 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.channels .tel { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+details { border-bottom: 1px solid var(--line); padding: 14px 0; }
+details:first-of-type { border-top: 1px solid var(--line); margin-top: 20px; }
+summary { cursor: pointer; font-weight: 600; font-size: 17px; list-style-position: outside; }
+details p { margin: 10px 0 0; color: var(--muted); max-width: 70ch; }
+footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: grid; gap: 10px; }
+footer p { margin: 0; max-width: 80ch; }
+footer ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+footer a { overflow-wrap: anywhere; }
+
+@media (max-width: 800px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="var(--accent)"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Mi Expediente INSS</span>
+    </div>
+    <div class="lang" role="group" aria-label="Idioma / Язык">
+      <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+      <button type="button" data-lang="es" aria-pressed="false">ES</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow" data-i18n="eyebrow"></p>
+        <h1 data-i18n="h1"></h1>
+        <p class="lead" data-i18n="lead"></p>
+      </div>
+      <form class="card" id="calc" novalidate>
+        <label for="tramite" data-i18n="f_tramite"></label>
+        <select id="tramite"></select>
+        <label for="fecha" data-i18n="f_date"></label>
+        <input type="date" id="fecha" required>
+        <p class="hint" id="hint"></p>
+        <button class="btn" type="submit" data-i18n="btn"></button>
+      </form>
+    </section>
+
+    <section id="result" class="result" aria-live="polite"></section>
+
+    <section class="block" id="canales">
+      <h2 data-i18n="ch_h"></h2>
+      <p class="sub" data-i18n="ch_sub"></p>
+      <div class="channels">
+        <div class="card"><h3>Sede Electrónica</h3><p data-i18n="ch_sede"></p><a href="https://sede.seg-social.gob.es" target="_blank" rel="noopener">sede.seg-social.gob.es</a></div>
+        <div class="card"><h3>Prestaciones</h3><p data-i18n="ch_prest"></p><a href="https://prestaciones.seg-social.es" target="_blank" rel="noopener">prestaciones.seg-social.es</a></div>
+        <div class="card"><h3>Tu Seguridad Social</h3><p data-i18n="ch_tu"></p><a href="https://sede-tu.seg-social.gob.es" target="_blank" rel="noopener">sede-tu.seg-social.gob.es</a></div>
+        <div class="card"><h3 data-i18n="ch_phone_h"></h3><p class="tel">91 542 11 76 · 901 16 65 65</p><p data-i18n="ch_phone"></p><p class="tel">IMV: 020</p></div>
+        <div class="card"><h3>Cita previa</h3><p data-i18n="ch_cita"></p><p class="tel">91 541 25 30 · 901 10 65 70</p><a href="https://run.gob.es/solicitarcita" target="_blank" rel="noopener">run.gob.es/solicitarcita</a></div>
+      </div>
+    </section>
+
+    <section class="block" id="faq">
+      <h2 data-i18n="faq_h"></h2>
+      <details><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
+      <details><summary data-i18n="q2"></summary><p data-i18n="a2"></p></details>
+      <details><summary data-i18n="q3"></summary><p data-i18n="a3"></p></details>
+      <details><summary data-i18n="q4"></summary><p data-i18n="a4"></p></details>
+    </section>
+  </main>
+
+  <footer>
+    <p data-i18n="disclaimer"></p>
+    <ul>
+      <li><a href="https://www.boe.es/eli/es/rd/2003/03/07/286/con/20030408" target="_blank" rel="noopener">Real Decreto 286/2003 (BOE)</a></li>
+      <li><a href="https://www.seg-social.es/descarga/es/tripticoinss" target="_blank" rel="noopener">Carta de servicios INSS 2026-2029</a></li>
+      <li><a href="https://www.defensordelpueblo.es/resoluciones/resolucion-expresa-en-tiempo-y-forma-263" target="_blank" rel="noopener">Defensor del Pueblo</a></li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+/* CORE-START */
+var FIXED = ['01-01','01-06','05-01','08-15','10-12','11-01','12-06','12-08','12-25'];
+var GOOD_FRIDAY = ['2025-04-18','2026-04-03','2027-03-26','2028-04-14'];
+function pad(n){ return (n < 10 ? '0' : '') + n; }
+function atNoon(y, m, d){ return new Date(y, m, d, 12); }
+function parseISO(s){ var p = s.split('-').map(Number); return atNoon(p[0], p[1] - 1, p[2]); }
+function toISO(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function addDays(d, n){ var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function addMonths(d, n){
+  var r = new Date(d.getFullYear(), d.getMonth() + n, 1, 12);
+  var last = new Date(r.getFullYear(), r.getMonth() + 1, 0, 12).getDate();
+  r.setDate(Math.min(d.getDate(), last));
+  return r;
+}
+function diffDays(a, b){ return Math.round((b - a) / 864e5); }
+function isWork(d){
+  var w = d.getDay();
+  if (w === 0 || w === 6) return false;
+  if (FIXED.indexOf(pad(d.getMonth() + 1) + '-' + pad(d.getDate())) >= 0) return false;
+  if (GOOD_FRIDAY.indexOf(toISO(d)) >= 0) return false;
+  return true;
+}
+function addWork(d, n){
+  var r = new Date(d), c = 0;
+  while (c < n){ r = addDays(r, 1); if (isWork(r)) c++; }
+  return r;
+}
+var TR = [
+  { id: 'jub', max: { type: 'work', n: 90 },  typical: { days: 15, pct: 90 }, silence: 'neg' },
+  { id: 'imv', max: { type: 'months', n: 6 }, typical: null,                  silence: 'neg' },
+  { id: 'ip',  max: { type: 'work', n: 135 }, typical: null,                  silence: 'neg' },
+  { id: 'nyc', max: { type: 'work', n: 30 },  typical: { days: 10, pct: 95 }, silence: null },
+  { id: 'pu',  max: { type: 'work', n: 45 },  typical: null,                  silence: null },
+  { id: 'it',  max: { type: 'work', n: 30 },  typical: { days: 15, pct: 85 }, silence: null },
+  { id: 'vi',  max: { type: 'work', n: 90 },  typical: { days: 10, pct: 90 }, silence: null }
+];
+function evaluate(t, sub, today){
+  var X = t.max.type === 'months' ? addMonths(sub, t.max.n) : addDays(sub, t.max.n);
+  var Y = t.max.type === 'months' ? X : addWork(sub, t.max.n);
+  var elapsed = diffDays(sub, today);
+  var toX = diffDays(today, X);
+  var spanX = diffDays(sub, X);
+  var state;
+  if (elapsed < 0) state = 'future';
+  else if (today > Y) state = 'expired';
+  else if (today > X) state = 'window';
+  else if (toX <= Math.round(0.15 * spanX)) state = 'close';
+  else if (t.typical && elapsed <= t.typical.days) state = 'early';
+  else state = 'ok';
+  return { state: state, elapsed: elapsed, X: X, Y: Y, toX: toX, span: diffDays(sub, Y) };
+}
+/* CORE-END */
+
+var I18N = {
+  ru: {
+    eyebrow: 'Seguridad Social · INSS',
+    h1: 'Подали заявление в INSS? Узнайте, нормально ли ждать',
+    lead: 'Выберите trámite и дату подачи. Покажем обычный срок, максимум по закону и что делать, если пора действовать. Без регистрации: расчёт идёт в вашем браузере.',
+    f_tramite: 'Trámite', f_date: 'Дата подачи',
+    hint: 'Берите дату из justificante de registro.',
+    hint_ex: 'Подставлен пример. Укажите свою дату.',
+    btn: 'Проверить срок',
+    empty: 'Укажите дату подачи, и здесь появится ответ.',
+    r_elapsed: 'Прошло', r_typical: 'Обычно', r_max: 'Максимум по закону',
+    typ: function(p, d){ return 'по цели INSS ' + p + '% дел решаются за ' + d + ' дн.'; },
+    noTyp: 'Официальной статистики нет',
+    until: function(d){ return 'до ' + d; },
+    between: function(a, b){ return 'между ' + a + ' и ' + b; },
+    rangeNote: 'В юридических блогах сроки в днях обычно называют рабочими, но в тексте RD 286/2003 это не указано. Поэтому даём диапазон: дата при счёте календарными днями и дата по рабочим. Субботы, воскресенья и общенациональные праздники учтены, региональные нет.',
+    monthsNote: 'Срок считается в месяцах с даты регистрации заявления.',
+    srcLabel: 'Источник срока: ',
+    pill: { early: 'В норме', ok: 'В пределах закона', close: 'Срок подходит', window: 'Срок мог истечь', expired: 'Срок истёк', future: 'Дата в будущем' },
+    title: { early: 'Пока всё нормально', ok: 'Срок ещё в пределах закона', close: 'Срок подходит к максимуму', window: 'Срок мог уже истечь', expired: 'Максимальный срок истёк', future: 'Проверьте дату' },
+    body: {
+      early: function(c){ return 'Прошло ' + c.n + ' дн. Обычный срок по этому trámite ещё не вышел, так что беспокоиться рано.'; },
+      okTyp: function(c){ return 'Прошло ' + c.n + ' дн. Это дольше обычного, но до максимума по закону ещё ' + c.toX + ' дн.'; },
+      okNone: function(c){ return 'Прошло ' + c.n + ' дн. До максимума по закону ещё около ' + c.toX + ' дн. Официальной статистики по этому trámite нет, поэтому «обычный» срок назвать нельзя.'; },
+      close: function(c){ return 'До максимума по закону осталось ' + c.toX + ' дн. Самое время проверить статус и убедиться, что нет requerimiento без ответа.'; },
+      window: function(c){ return 'По календарным дням срок вышел ' + c.X + ', по рабочим истекает ' + c.Y + '. Проверьте статус сейчас.'; },
+      expiredNeg: function(c){ return 'Срок вышел ' + c.Y + '. По этому trámite молчание INSS считается отказом (silencio negativo), но INSS всё равно должен ответить, а решение можно оспорить.'; },
+      expiredNull: function(c){ return 'Срок вышел ' + c.Y + '. Как INSS трактует молчание по этому trámite, в источниках я не нашёл и не утверждаю. Уточните у INSS.'; },
+      future: function(){ return 'Дата подачи не может быть в будущем.'; }
+    },
+    stepsH: 'Что делать',
+    st: {
+      check: 'Проверьте статус официально: Sede Electrónica (Cl@ve или сертификат), Tu Seguridad Social или телефон INSS. Контакты ниже.',
+      notif: 'Откройте Carpeta Ciudadana и DEHú: официальные уведомления приходят туда, а не всегда на почту.',
+      req: 'Если INSS запросил документы (requerimiento), ответьте в срок из письма, обычно около 10 дней.',
+      remind: 'Поставьте напоминание на дату ниже.',
+      escrito: 'Если ответа нет, направьте в INSS письменный escrito с просьбой resolver. Модель пусть проверит gestor или юрист.',
+      reclam: 'После отказа или silencio подайте reclamación previa: обычно 30 рабочих дней с уведомления. Для случая silencio уточните срок у юриста.',
+      call: 'Позвоните в INSS или запишитесь на cita previa. Номера ниже.'
+    },
+    remind: function(d){ return 'Напомнить в Google Calendar: ' + d; },
+    calTitle: function(n){ return 'Mi Expediente INSS: проверить ' + n; },
+    calDetails: function(s){ return 'Проверить статус заявления, поданного ' + s + '.'; },
+    t: {
+      jub: { name: 'Jubilación (пенсия по возрасту)', src: 'RD 286/2003, anexo: 90 дней; цель INSS из Carta de servicios 2026-2029.' },
+      imv: { name: 'Ingreso Mínimo Vital', src: 'Defensor del Pueblo: 6 месяцев с даты регистрации заявления.' },
+      ip:  { name: 'Incapacidad permanente (пенсия по инвалидности)', src: 'RD 286/2003, anexo: 135 дней. По данным юридических блогов, если дело открыл сам INSS после 18 месяцев больничного, silencio не применяется.' },
+      nyc: { name: 'Nacimiento y cuidado del menor (отпуск по рождению)', src: 'RD 286/2003 указывает 30 дней для «prestaciones por maternidad», так выплата называлась до реформы. Мы применяем его по аналогии.' },
+      pu:  { name: 'Pago único por nacimiento (1000 €)', src: 'RD 286/2003: «prestación económica por nacimiento de hijo», 45 дней. Для familias numerosas, monoparentales и родителей с инвалидностью от 65%; доходные лимиты проверяйте на seg-social.es.' },
+      it:  { name: 'Incapacidad temporal (больничный, pago directo)', src: 'RD 286/2003, anexo: 30 дней; цель INSS из Carta de servicios 2026-2029.' },
+      vi:  { name: 'Viudedad (пенсия по потере супруга)', src: 'RD 286/2003, anexo: 90 дней; цель INSS из Carta de servicios 2026-2029.' }
+    },
+    ch_h: 'Как проверить статус официально',
+    ch_sub: 'Этот сайт не видит ваше дело: данные есть только у INSS. Вот где их смотреть.',
+    ch_sede: 'Вход через Cl@ve или сертификат. Основные trámites.',
+    ch_prest: 'Подача заявлений на выплаты и consulta по ним.',
+    ch_tu: 'Личный кабинет Seguridad Social.',
+    ch_phone_h: 'Телефон INSS',
+    ch_phone: 'Информация, с понедельника по пятницу, 9:00-20:00.',
+    ch_cita: 'Запись на приём или звонок. Есть услуга «Nosotros te llamamos».',
+    faq_h: 'Частые вопросы',
+    q1: 'Что значит silencio administrativo?',
+    a1: 'Это когда INSS не ответил в срок. Для jubilación, IMV и incapacidad permanente молчание считается отказом (silencio negativo). Но INSS всё равно обязан ответить письменно, и решение можно оспорить.',
+    q2: 'Что такое reclamación previa?',
+    a2: 'Обязательный шаг перед судом, если вы не согласны с решением INSS. Обычно на неё есть 30 рабочих дней с уведомления, затем у INSS около 45 рабочих дней на ответ.',
+    q3: 'Что такое requerimiento и почему его нельзя пропускать?',
+    a3: 'Это запрос INSS на недостающие документы. В письме указан срок, обычно около 10 дней. Если не ответить, дело могут закрыть. Уведомление приходит в Carpeta Ciudadana или DEHú, а не всегда на почту.',
+    q4: 'Сайт подключается к моему кабинету INSS?',
+    a4: 'Нет. Мы не просим DNI, NSS и номер expediente, и расчёт идёт в вашем браузере.',
+    disclaimer: 'Mi Expediente INSS не связан с INSS и Seguridad Social и не заменяет юридическую консультацию. Максимумы взяты из RD 286/2003 (BOE), цели INSS из Carta de servicios 2026-2029, срок IMV из материалов Defensor del Pueblo; проверено 13.11.2026. Законы меняются, актуальные данные смотрите на seg-social.es.',
+    analytics: 'Сайт ведёт анонимную статистику визитов (GoatCounter) без cookies и личных данных.'
+  },
+  es: {
+    eyebrow: 'Seguridad Social · INSS',
+    h1: '¿Has presentado una solicitud al INSS? Comprueba si tu espera es normal',
+    lead: 'Elige el trámite y la fecha de presentación. Te mostramos el plazo habitual, el máximo legal y qué hacer si toca actuar. Sin registro: el cálculo se hace en tu navegador.',
+    f_tramite: 'Trámite', f_date: 'Fecha de presentación',
+    hint: 'Usa la fecha del justificante de registro.',
+    hint_ex: 'Ejemplo precargado. Pon tu fecha.',
+    btn: 'Comprobar plazo',
+    empty: 'Indica la fecha de presentación y aquí aparecerá la respuesta.',
+    r_elapsed: 'Han pasado', r_typical: 'Lo habitual', r_max: 'Máximo legal',
+    typ: function(p, d){ return 'objetivo del INSS: el ' + p + '% se resuelve en ' + d + ' días'; },
+    noTyp: 'Sin estadística oficial',
+    until: function(d){ return 'hasta el ' + d; },
+    between: function(a, b){ return 'entre el ' + a + ' y el ' + b; },
+    rangeNote: 'En blogs jurídicos estos plazos en días suelen darse como hábiles, pero el texto del RD 286/2003 no lo indica. Por eso damos un rango: la fecha si se contaran días naturales y la fecha en días hábiles. Se excluyen sábados, domingos y festivos nacionales; no los de tu comunidad.',
+    monthsNote: 'El plazo se cuenta en meses desde la fecha de registro de la solicitud.',
+    srcLabel: 'Fuente del plazo: ',
+    pill: { early: 'Todo normal', ok: 'Dentro del plazo', close: 'El plazo se acerca', window: 'Pudo vencer', expired: 'Plazo vencido', future: 'Fecha futura' },
+    title: { early: 'De momento todo normal', ok: 'Aún dentro del plazo legal', close: 'El plazo está cerca del máximo', window: 'El plazo pudo vencer ya', expired: 'Plazo máximo vencido', future: 'Revisa la fecha' },
+    body: {
+      early: function(c){ return 'Han pasado ' + c.n + ' días. El plazo habitual de este trámite aún no ha vencido, así que es pronto para preocuparse.'; },
+      okTyp: function(c){ return 'Han pasado ' + c.n + ' días. Es más de lo habitual, pero faltan ' + c.toX + ' días para el máximo legal.'; },
+      okNone: function(c){ return 'Han pasado ' + c.n + ' días. Faltan unos ' + c.toX + ' días para el máximo legal. No hay estadística oficial de este trámite, así que no podemos decir cuál es el plazo habitual.'; },
+      close: function(c){ return 'Quedan ' + c.toX + ' días para el máximo legal. Es buen momento para comprobar el estado y asegurarte de que no hay un requerimiento sin contestar.'; },
+      window: function(c){ return 'Contando días naturales el plazo venció el ' + c.X + '; contando días hábiles vence el ' + c.Y + '. Comprueba el estado ahora.'; },
+      expiredNeg: function(c){ return 'El plazo venció el ' + c.Y + '. En este trámite el silencio del INSS equivale a una denegación (silencio negativo), pero el INSS sigue obligado a resolver y la decisión se puede recurrir.'; },
+      expiredNull: function(c){ return 'El plazo venció el ' + c.Y + '. No he encontrado en las fuentes cómo trata el INSS el silencio en este trámite, así que no lo afirmo. Consúltalo con el INSS.'; },
+      future: function(){ return 'La fecha de presentación no puede ser futura.'; }
+    },
+    stepsH: 'Qué hacer',
+    st: {
+      check: 'Comprueba el estado por canales oficiales: Sede Electrónica (Cl@ve o certificado), Tu Seguridad Social o el teléfono del INSS. Contactos más abajo.',
+      notif: 'Revisa Carpeta Ciudadana y DEHú: las notificaciones oficiales llegan ahí y no siempre por correo.',
+      req: 'Si el INSS te ha pedido documentación (requerimiento), respóndele dentro del plazo de la carta, normalmente unos 10 días.',
+      remind: 'Pon un recordatorio en la fecha de abajo.',
+      escrito: 'Si no hay respuesta, presenta un escrito al INSS pidiendo que resuelva. Que un gestor o abogado revise el modelo.',
+      reclam: 'Tras la denegación o el silencio, presenta la reclamación previa: normalmente 30 días hábiles desde la notificación. En caso de silencio, confirma el plazo con un profesional.',
+      call: 'Llama al INSS o pide cita previa. Los números están más abajo.'
+    },
+    remind: function(d){ return 'Recordatorio en Google Calendar: ' + d; },
+    calTitle: function(n){ return 'Mi Expediente INSS: comprobar ' + n; },
+    calDetails: function(s){ return 'Revisar el estado de la solicitud presentada el ' + s + '.'; },
+    t: {
+      jub: { name: 'Jubilación', src: 'RD 286/2003, anexo: 90 días; objetivo del INSS según su Carta de servicios 2026-2029.' },
+      imv: { name: 'Ingreso Mínimo Vital', src: 'Defensor del Pueblo: 6 meses desde la fecha de registro de la solicitud.' },
+      ip:  { name: 'Incapacidad permanente', src: 'RD 286/2003, anexo: 135 días. Según blogs jurídicos, si el INSS abre el expediente de oficio tras 18 meses de baja, no hay silencio negativo.' },
+      nyc: { name: 'Nacimiento y cuidado del menor', src: 'El RD 286/2003 fija 30 días para las «prestaciones por maternidad», nombre anterior de esta prestación. Lo aplicamos por analogía.' },
+      pu:  { name: 'Pago único por nacimiento (1000 €)', src: 'RD 286/2003: «prestación económica por nacimiento de hijo», 45 días. Para familias numerosas, monoparentales y progenitores con discapacidad igual o superior al 65%; comprueba los límites de renta en seg-social.es.' },
+      it:  { name: 'Incapacidad temporal (pago directo)', src: 'RD 286/2003, anexo: 30 días; objetivo del INSS según su Carta de servicios 2026-2029.' },
+      vi:  { name: 'Viudedad', src: 'RD 286/2003, anexo: 90 días; objetivo del INSS según su Carta de servicios 2026-2029.' }
+    },
+    ch_h: 'Cómo comprobar el estado por canales oficiales',
+    ch_sub: 'Esta web no ve tu expediente: solo lo ve el INSS. Estos son los canales para consultarlo.',
+    ch_sede: 'Acceso con Cl@ve o certificado. Trámites principales.',
+    ch_prest: 'Solicitud de prestaciones y consulta de su estado.',
+    ch_tu: 'Área personal de la Seguridad Social.',
+    ch_phone_h: 'Teléfono del INSS',
+    ch_phone: 'Información general, de lunes a viernes, de 9:00 a 20:00.',
+    ch_cita: 'Cita presencial o telefónica. Existe el servicio «Nosotros te llamamos».',
+    faq_h: 'Preguntas frecuentes',
+    q1: '¿Qué es el silencio administrativo?',
+    a1: 'Es cuando el INSS no resuelve en el plazo legal. En jubilación, IMV e incapacidad permanente el silencio equivale a una denegación (silencio negativo). Pero el INSS sigue obligado a contestar por escrito y la decisión se puede recurrir.',
+    q2: '¿Qué es la reclamación previa?',
+    a2: 'Es el paso obligatorio antes de ir a juicio si no estás de acuerdo con la resolución del INSS. Normalmente tienes 30 días hábiles desde la notificación y el INSS suele disponer de 45 días hábiles para contestar.',
+    q3: '¿Qué es un requerimiento y por qué no hay que dejarlo pasar?',
+    a3: 'Es una petición del INSS para que aportes documentación que falta. La carta indica el plazo, normalmente unos 10 días. Si no contestas, pueden archivar el expediente. La notificación llega a Carpeta Ciudadana o DEHú y no siempre por correo.',
+    q4: '¿Esta web se conecta a mi cuenta del INSS?',
+    a4: 'No. No pedimos DNI, NSS ni número de expediente, y el cálculo se hace en tu navegador.',
+    disclaimer: 'Mi Expediente INSS no está vinculado al INSS ni a la Seguridad Social y no sustituye el asesoramiento jurídico. Los máximos proceden del RD 286/2003 (BOE), los objetivos del INSS de su Carta de servicios 2026-2029 y el plazo del IMV de materiales del Defensor del Pueblo; contrastado el 13/11/2026. La normativa cambia; consulta los datos vigentes en seg-social.es.',
+    analytics: 'La web cuenta visitas de forma anónima (GoatCounter), sin cookies ni datos personales.'
+  }
+};
+
+var lang = 'ru';
+try {
+  var saved = localStorage.getItem('mi-expediente-lang');
+  if (saved === 'ru' || saved === 'es') lang = saved;
+  else if ((navigator.language || '').toLowerCase().indexOf('es') === 0) lang = 'es';
+} catch (e) {}
+
+var sel = document.getElementById('tramite');
+var fecha = document.getElementById('fecha');
+var hint = document.getElementById('hint');
+var resultEl = document.getElementById('result');
+var isExample = true;
+
+/* Счётчик посещений (GoatCounter). Впишите свой код между кавычками, например 'mi-expediente'. Пока строка пустая, ничего не отправляется. */
+var GOATCOUNTER_CODE = '';
+var counted = {};
+var calcTimer;
+function track(name){
+  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: name, title: name, event: true }); } catch (e) {}
+}
+function trackCalc(){
+  if (isExample || !fecha.value) return;
+  var key = sel.value + '|' + fecha.value;
+  if (counted[key]) return;
+  counted[key] = true;
+  track('calc-' + sel.value);
+}
+function scheduleTrack(){ clearTimeout(calcTimer); calcTimer = setTimeout(trackCalc, 900); }
+(function loadCounter(){
+  if (!GOATCOUNTER_CODE || location.protocol === 'file:' || location.hostname === 'localhost') return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.setAttribute('data-goatcounter', 'https://' + GOATCOUNTER_CODE + '.goatcounter.com/count');
+  s.src = 'https://gc.zgo.at/count.js';
+  document.head.appendChild(s);
+})();
+
+function today(){ var n = new Date(); return atNoon(n.getFullYear(), n.getMonth(), n.getDate()); }
+function fmt(d){ return d.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }); }
+function fmtShort(d){ return d.toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'es-ES', { day: 'numeric', month: 'short' }); }
+function dn(n){ return lang === 'ru' ? n + ' дн.' : (n === 1 ? '1 día' : n + ' días'); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+function applyStatic(){
+  var L = I18N[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = L[el.getAttribute('data-i18n')];
+    if (typeof v === 'string') el.textContent = v;
+  });
+  document.querySelectorAll('.lang button').forEach(function(b){
+    b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+  });
+  var cur = sel.value || 'pu';
+  sel.innerHTML = TR.map(function(t){ return '<option value="' + t.id + '">' + esc(L.t[t.id].name) + '</option>'; }).join('');
+  sel.value = cur;
+  hint.textContent = isExample ? L.hint_ex : L.hint;
+  if (GOATCOUNTER_CODE){
+    var dis = document.querySelector('[data-i18n="disclaimer"]');
+    if (dis) dis.textContent = L.disclaimer + ' ' + L.analytics;
+  }
+}
+
+function render(){
+  var L = I18N[lang];
+  if (!fecha.value){ resultEl.innerHTML = '<div class="card empty">' + esc(L.empty) + '</div>'; return; }
+  var t = TR.filter(function(x){ return x.id === sel.value; })[0];
+  var tt = L.t[t.id];
+  var sub = parseISO(fecha.value);
+  var td = today();
+  var ev = evaluate(t, sub, td);
+  var cls = { early: 'ok', ok: 'neutral', close: 'warn', window: 'warn', expired: 'bad', future: 'neutral' }[ev.state];
+  var ctx = { n: ev.elapsed, toX: ev.toX, X: fmt(ev.X), Y: fmt(ev.Y) };
+  var body;
+  if (ev.state === 'ok') body = t.typical ? L.body.okTyp(ctx) : L.body.okNone(ctx);
+  else if (ev.state === 'expired') body = t.silence === 'neg' ? L.body.expiredNeg(ctx) : L.body.expiredNull(ctx);
+  else body = L.body[ev.state](ctx);
+
+  var stepKeys = {
+    early: ['notif', 'req', 'remind'],
+    ok: ['check', 'notif', 'remind'],
+    close: ['check', 'req', 'call'],
+    window: ['check', 'call', 'escrito'],
+    expired: t.silence === 'neg' ? ['check', 'escrito', 'reclam'] : ['check', 'call', 'escrito'],
+    future: []
+  }[ev.state];
+
+  var html = '<div class="panel"><div class="banner ' + cls + '"><span class="pill">' + esc(L.pill[ev.state]) + '</span><h2>' + esc(L.title[ev.state]) + '</h2><p>' + esc(body) + '</p></div>';
+  if (ev.state !== 'future'){
+    var maxTxt = ev.X.getTime() === ev.Y.getTime() ? L.until(fmt(ev.Y)) : L.between(fmt(ev.X), fmt(ev.Y));
+    var fillPct = Math.max(0, Math.min(100, ev.elapsed / ev.span * 100));
+    var xPct = diffDays(sub, ev.X) / ev.span * 100;
+    var typPct = t.typical ? t.typical.days / ev.span * 100 : null;
+    var hasZone = ev.X.getTime() !== ev.Y.getTime();
+    var scale = '<span>' + esc((lang === 'ru' ? 'подача ' : 'presentada ') + fmtShort(sub)) + '</span>';
+    var track = '<div class="fill" style="width:' + fillPct.toFixed(1) + '%"></div>';
+    if (hasZone) track += '<div class="zone" style="left:' + xPct.toFixed(1) + '%;right:0"></div>';
+    if (typPct !== null){
+      track += '<div class="tick" style="left:' + typPct.toFixed(1) + '%"></div>';
+      scale += '<span>' + esc((lang === 'ru' ? 'обычно ' : 'habitual ') + dn(t.typical.days)) + '</span>';
+    }
+    if (hasZone){
+      track += '<div class="tick" style="left:' + xPct.toFixed(1) + '%"></div>';
+      scale += '<span>' + esc((lang === 'ru' ? 'макс. календарные ' : 'máx. naturales ') + fmtShort(ev.X)) + '</span>';
+    }
+    scale += '<span>' + esc((hasZone ? (lang === 'ru' ? 'макс. рабочие ' : 'máx. hábiles ') : (lang === 'ru' ? 'макс. ' : 'máx. ')) + fmtShort(ev.Y)) + '</span>';
+    var aria = (lang === 'ru' ? 'Прошло ' : 'Han pasado ') + dn(ev.elapsed) + (lang === 'ru' ? ' из максимума до ' : ' del máximo hasta el ') + fmt(ev.Y);
+
+    html += '<div class="body">';
+    html += '<dl class="facts">' +
+      '<div><dt>' + esc(L.r_elapsed) + '</dt><dd class="big">' + esc(dn(ev.elapsed)) + '</dd></div>' +
+      '<div><dt>' + esc(L.r_typical) + '</dt><dd>' + esc(t.typical ? dn(t.typical.days) : '—') + '<small>' + esc(t.typical ? L.typ(t.typical.pct, t.typical.days) : L.noTyp) + '</small></dd></div>' +
+      '<div><dt>' + esc(L.r_max) + '</dt><dd>' + esc(maxTxt) + '</dd></div></dl>';
+    html += '<div><div class="track" role="img" aria-label="' + esc(aria) + '">' + track + '</div><div class="legend">' + scale + '</div></div>';
+    if (stepKeys.length){
+      html += '<div><div class="h3">' + esc(L.stepsH) + '</div><ol class="steps">' + stepKeys.map(function(k){ return '<li>' + esc(L.st[k]) + '</li>'; }).join('') + '</ol></div>';
+    }
+    var remindDate = ev.X >= td ? ev.X : (ev.Y >= td ? ev.Y : null);
+    if (remindDate){
+      var d1 = toISO(remindDate).replace(/-/g, '');
+      var d2 = toISO(addDays(remindDate, 1)).replace(/-/g, '');
+      var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(L.calTitle(tt.name)) +
+        '&dates=' + d1 + '/' + d2 + '&details=' + encodeURIComponent(L.calDetails(fmt(sub)));
+      html += '<div class="actions"><a class="btn ghost" href="' + url + '" target="_blank" rel="noopener">' + esc(L.remind(fmt(remindDate))) + '</a></div>';
+    }
+    html += '<p class="note">' + esc(t.max.type === 'months' ? L.monthsNote : L.rangeNote) + '</p>';
+    html += '<p class="note">' + esc(L.srcLabel + tt.src) + '</p>';
+    html += '</div>';
+  }
+  html += '</div>';
+  resultEl.innerHTML = html;
+}
+
+document.querySelectorAll('.lang button').forEach(function(b){
+  b.addEventListener('click', function(){
+    lang = b.getAttribute('data-lang');
+    try { localStorage.setItem('mi-expediente-lang', lang); } catch (e) {}
+    applyStatic(); render();
+  });
+});
+document.getElementById('calc').addEventListener('submit', function(e){ e.preventDefault(); isExample = false; hint.textContent = I18N[lang].hint; render(); trackCalc(); });
+sel.addEventListener('change', function(){ render(); scheduleTrack(); });
+fecha.addEventListener('input', function(){ isExample = false; hint.textContent = I18N[lang].hint; render(); scheduleTrack(); });
+resultEl.addEventListener('click', function(e){ var a = e.target.closest ? e.target.closest('a.btn.ghost') : null; if (a) track('reminder'); });
+
+(function init(){
+  var ex = addDays(today(), -30);
+  fecha.value = toISO(ex);
+  sel.innerHTML = '<option value="pu"></option>';
+  sel.value = 'pu';
+  applyStatic();
+  sel.value = 'pu';
+  render();
+})();
+</script>
+
+</body>
+</html>
